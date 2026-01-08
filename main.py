@@ -10,9 +10,11 @@ BLUE = (0, 0, 255)
 
 
 WIDTH, HEIGHT = 800, 700
+MIN_WIDTH, MIN_HEIGHT = 400, 300
 
 pygame.init()
 info = pygame.display.Info()
+#pygame.display.set_minimum_size(MIN_WIDTH, MIN_HEIGHT)
 
 #pygame.display.iconify()
 
@@ -82,6 +84,19 @@ def main():
     bank_icons.blit(pig_icon, (0, 20))
     white_bank_icon = tint_icon(bank_icons, WHITE)
 
+    #share icon 
+    share_icon = pygame.image.load("assests/stock_icon.png").convert_alpha()
+    final_share_icon = pygame.transform.smoothscale(share_icon, (70, 70))
+    white_share_icon = tint_icon(final_share_icon, WHITE)
+
+    # report combine icon
+    pie_chart_icon = pygame.image.load("assests/stock_pies.png").convert_alpha()
+    pie_chart_icon = pygame.transform.smoothscale(pie_chart_icon, (48, 48))
+    bar_icon = pygame.transform.smoothscale(share_icon, (60, 60))
+    stock_report_icon = pygame.Surface((120, 120), pygame.SRCALPHA)
+    stock_report_icon.blit(pie_chart_icon, (0, 0))
+    stock_report_icon.blit(bar_icon, (50, 0))
+    white_report_icon = tint_icon(stock_report_icon, WHITE)
 
     """ bank_icon = pygame.image.load("assests/pigibank.png").convert_alpha()
     bank_icon = pygame.transform.smoothscale(bank_icon, (48, 48))
@@ -112,12 +127,18 @@ def main():
                     sys.exit()
             
             if event.type == pygame.VIDEORESIZE:
-                screen = pygame.display.set_mode(event.size, pygame.RESIZABLE)  
-                width, height = event.size
+                  
+                width, height = max(event.w, MIN_WIDTH), max(event.h, MIN_HEIGHT)
+                screen = pygame.display.set_mode(
+                 (width, height),
+                    pygame.RESIZABLE
+                    )
                 background = get_instant_bg(width, height)
         
         screen.blit(background, (0, 0))
         screen.blit(white_bank_icon, (120, 250))
+        screen.blit(white_share_icon, (220, 250))
+        screen.blit(white_report_icon, (350, 250))
         
         
         pygame.display.update()
