@@ -1,23 +1,18 @@
 import pygame
 import sys
-
-
-
-
-ORANGE = (255, 165, 0)
-WHITE = (255, 255, 255)
-BLUE = (0, 0, 255)
-
-
-WIDTH, HEIGHT = 800, 700
-MIN_WIDTH, MIN_HEIGHT = 400, 300
+import config
 
 pygame.init()
 info = pygame.display.Info()
-#pygame.display.set_minimum_size(MIN_WIDTH, MIN_HEIGHT)
 
-#pygame.display.iconify()
+#set config values
+config.WIDTH = int(info.current_w * 0.7)
+config.HEIGHT = int(info.current_h * 0.7)
+config.MIN_WIDTH = int( info.current_w* 0.5)
+config.MIN_HEIGHT = int(info.current_h * 0.55)
 
+from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH 
+print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
 pygame.display.set_caption("Finance Investement Tracker")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 24)
@@ -64,6 +59,28 @@ def tint_icon(icon, color):
     tinted.fill((*color, 255), special_flags=pygame.BLEND_RGBA_MULT)
     return tinted   
 
+def load_icon(path, size):
+    icon = pygame.image.load(path).convert_alpha() 
+    return pygame.transform.smoothscale(icon, size)
+
+class icon:
+    def __init__(self,  size, pos=(0,0)):
+        self.surface = pygame.Surface(size, pygame.SRCALPHA)
+        
+        self.rect = self.surface.get_rect(topleft=pos)
+    
+    def add_image(self, icon, pos):
+        self.surface.blit(icon, pos)
+    
+    def draw(self, screen):
+        screen.blit(self.surface, self.rect)
+
+    def set_pos(self, x, y):
+        self.rect.topleft = (x, y)
+
+    def tint(self, color):
+        self.surface = tint_icon(self.surface, color)
+
 
 def main():
     Options = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Cryptocurrency"]
@@ -72,51 +89,39 @@ def main():
                 pygame.RESIZABLE
             )
     #bank icon combine
-    pig_icon = pygame.image.load("assests/pig_icon.png").convert_alpha()
-    pig_icon = pygame.transform.smoothscale(pig_icon, (48, 48))
-    coin_icon = pygame.image.load("assests/coins.png").convert_alpha()
-    coin_icon = pygame.transform.smoothscale(coin_icon, (20, 20))
-    credit_icons = pygame.image.load("assests/credi-card.png").convert_alpha()
-    credit_icons = pygame.transform.smoothscale(credit_icons, (35, 40))
-    bank_icons = pygame.Surface((150, 100), pygame.SRCALPHA)
-    bank_icons.blit(credit_icons, (20, 21))
-    bank_icons.blit(coin_icon, (18, 5))
-    bank_icons.blit(pig_icon, (0, 20))
-    white_bank_icon = tint_icon(bank_icons, WHITE)
+    pig_icon = load_icon("assests/pig_icon.png", (48, 48))
+    coin_icon = load_icon("assests/coins.png", (17, 17))
+    credit_icons = load_icon("assests/credi-card.png", (35, 40))
+    bank_icons = icon((120, 100), pos=(120, 250))
+    bank_icons.add_image(credit_icons, (20, 21))
+    bank_icons.add_image(coin_icon, (18, 5))
+    bank_icons.add_image(pig_icon, (0, 20))
+    bank_icons.tint(WHITE)
 
     #share icon 
-    share_icon = pygame.image.load("assests/stock_icon.png").convert_alpha()
-    final_share_icon = pygame.transform.smoothscale(share_icon, (70, 70))
-    white_share_icon = tint_icon(final_share_icon, WHITE)
+    share_icon = load_icon("assests/stock_icon.png", (70, 70))
+    stock_bar_icon = icon((120, 100) ,pos=(220, 250))
+    stock_bar_icon.add_image(share_icon, (0, 0))
+    stock_bar_icon.tint(WHITE)
 
     # report combine icon
-    pie_chart_icon = pygame.image.load("assests/stock_pies.png").convert_alpha()
-    pie_chart_icon = pygame.transform.smoothscale(pie_chart_icon, (48, 48))
-    bar_icon = pygame.transform.smoothscale(share_icon, (60, 60))
-    stock_report_icon = pygame.Surface((120, 120), pygame.SRCALPHA)
-    stock_report_icon.blit(pie_chart_icon, (0, 0))
-    stock_report_icon.blit(bar_icon, (50, 0))
-    white_report_icon = tint_icon(stock_report_icon, WHITE)
+    pie_chart_icon = load_icon("assests/stock_pies.png",(48, 48) )
+    bar_icon = load_icon("assests/stock_icon.png", (60,60))
+    stock_report_icon = icon((120,120), pos=(300, 250))
+    stock_report_icon.add_image(pie_chart_icon, (0, 0))
+    stock_report_icon.add_image(bar_icon, (50, 0))
+    stock_report_icon.tint(WHITE)
 
-    """ bank_icon = pygame.image.load("assests/pigibank.png").convert_alpha()
-    bank_icon = pygame.transform.smoothscale(bank_icon, (48, 48))
-    stock_icon = pygame.image.load("assests/stock_icon.png").convert_alpha()
-    stock_icon = pygame.transform.smoothscale(stock_icon, (30, 30))
-    reporting_icon = pygame.image.load("assests/pie_charts.png").convert_alpha()
-    reporting_icon = pygame.transform.smoothscale(reporting_icon, (38, 38))
-    combined_icon = pygame.Surface((120, 120), pygame.SRCALPHA)
-    combined_icon.blit(stock_icon, (0, 0))
-    combined_icon.blit(reporting_icon, (25, 0))
-    orange_icon = tint_icon(combined_icon, ORANGE)
-    blue_icons = tint_icon(stock_icon, BLUE)
-    blue_icon = tint_icon(bank_icon, BLUE) """
+    
     
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
 
+    
+
     while True:
-        clock.tick(60)
+        clock.tick(FPS)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -136,13 +141,13 @@ def main():
                 background = get_instant_bg(width, height)
         
         screen.blit(background, (0, 0))
-        screen.blit(white_bank_icon, (120, 250))
-        screen.blit(white_share_icon, (220, 250))
-        screen.blit(white_report_icon, (350, 250))
+        bank_icons.draw(screen)
+        stock_bar_icon.draw(screen)
+        stock_report_icon.draw(screen)
         
         
         pygame.display.update()
-        clock.tick(60)
+        clock.tick(FPS)
 
 
 if __name__ == "__main__":

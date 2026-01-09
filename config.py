@@ -1,0 +1,10 @@
+WIDTH = None
+HEIGHT = None
+FPS = 60
+
+MIN_WIDTH = None
+MIN_HEIGHT = None
+
+ORANGE = (255, 165, 0)
+WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
