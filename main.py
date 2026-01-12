@@ -13,6 +13,7 @@ config.MIN_HEIGHT = int(info.current_h * 0.55)
 
 from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH 
 print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
+
 pygame.display.set_caption("Finance Investement Tracker")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Arial", 24)
@@ -21,6 +22,7 @@ START_COLOR = (25, 45, 100)   # Deep Blue (Corner 1)
 MID_COLOR = (50, 150, 180)    # Vibrant Teal (Middle)
 END_COLOR = (120, 230, 230)   # Bright Cyan/Aqua (Corner 2 - The Glow)
 
+# Create a small gradient surface
 def create_gradient_surface(width, height, c1, c2, c3):
     surface = pygame.Surface((width, height))
 
@@ -50,42 +52,109 @@ def create_gradient_surface(width, height, c1, c2, c3):
     return surface
 SMALL_GRADIENT = create_gradient_surface(100, 100, START_COLOR, MID_COLOR, END_COLOR)
 
+# Function to get a stretched gradient background
 def get_instant_bg(width, height):
     # This uses Pygame's built-in C-engine to stretch the image
     return pygame.transform.smoothscale(SMALL_GRADIENT, (width, height))
 
+# Function to tint an icon with a given color
 def tint_icon(icon, color):
     tinted = icon.copy()
     tinted.fill((*color, 255), special_flags=pygame.BLEND_RGBA_MULT)
     return tinted   
 
+# Function to load and scale an icon
 def load_icon(path, size):
     icon = pygame.image.load(path).convert_alpha() 
     return pygame.transform.smoothscale(icon, size)
 
+# Icon class to manage individual icons
 class icon:
     def __init__(self,  size, pos=(0,0)):
         self.surface = pygame.Surface(size, pygame.SRCALPHA)
         
-        self.rect = self.surface.get_rect(topleft=pos)
+        self.rel_x, self.rel_y = pos
     
     def add_image(self, icon, pos):
         self.surface.blit(icon, pos)
     
-    def draw(self, screen):
-        screen.blit(self.surface, self.rect)
+    def get_width(self):
+        return self.surface.get_width()
+    
+    def get_height(self):
+        return self.surface.get_height()
+    
+    def draw(self, target_screen):
+        # Draw the icon surface onto the target screen at its relative position
+        target_screen.blit(self.surface, (self.rel_x, self.rel_y))
 
     def set_pos(self, x, y):
-        self.rect.topleft = (x, y)
+        self.rel_x = x
+        self.rel_y = y
 
     def tint(self, color):
         self.surface = tint_icon(self.surface, color)
 
+# Button card class for interactive buttons
+class button_card:
+    def __init__(self, size, icon, pos=(0,0), caption=""):
+        self.surface = pygame.Surface(size, pygame.SRCALPHA)
+        self.rect = self.surface.get_rect(topleft=pos)
+        self.icon = icon
+        self.caption = caption
+        self.caption_length = len(caption)
+        self.hovered = False
+        self.Gray = (60, 60, 60)
 
+    def update_position(self, x, y):
+        self.rect.topleft = (x, y)
+        x, y = self.surface.get_size() 
+        print(x, y)
+        #center icon in button
+        icon_x = x // 2 + self.caption_length // 2 - self.icon.get_width() // 3 
+        icon_y = y // 2 - self.icon.get_height() // 2 
+        self.icon.set_pos(icon_x, icon_y)
+
+    def hovered_check(self, mouse_pos):
+        if self.rect.collidepoint(mouse_pos):
+            self.hovered = True
+            
+        else:
+            self.hovered = False
+            
+
+    def draw(self, screen, color="", alpha=15):
+        self.color = color if color else self.Gray
+        self.color = ORANGE if self.hovered else self.Gray
+        
+
+        #draw card background
+        pygame.draw.rect(
+            self.surface,
+            (*self.color, alpha),
+            self.surface.get_rect(),
+            border_radius=12
+        )
+
+        #drawing border
+        pygame.draw.rect(
+            self.surface,
+            (*self.color, 90),
+            self.surface.get_rect(),
+            width=3,
+            border_radius=12
+        )
+        #draw icon and caption over button
+        self.icon.draw(self.surface)
+        if self.caption:
+            caption_surf = font.render(self.caption, True, WHITE)
+            caption_rect = caption_surf.get_rect(center=(self.surface.get_width() // 2, self.surface.get_height() - 50))
+            self.surface.blit(caption_surf, caption_rect)
+        screen.blit(self.surface, self.rect.topleft)
+    
 def main():
-    Options = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Cryptocurrency"]
     screen  = pygame.display.set_mode(
-                (800, 700),
+                (WIDTH, HEIGHT),
                 pygame.RESIZABLE
             )
     #bank icon combine
@@ -97,26 +166,44 @@ def main():
     bank_icons.add_image(coin_icon, (18, 5))
     bank_icons.add_image(pig_icon, (0, 20))
     bank_icons.tint(WHITE)
+    
+    bank_card = button_card((300, 200), bank_icons, caption="Bank Accounts")
+    
 
     #share icon 
-    share_icon = load_icon("assests/stock_icon.png", (70, 70))
+    share_icon = load_icon("assests/stock_icon.png", (80, 80))
     stock_bar_icon = icon((120, 100) ,pos=(220, 250))
     stock_bar_icon.add_image(share_icon, (0, 0))
     stock_bar_icon.tint(WHITE)
 
+    share_card = button_card((300, 200), stock_bar_icon, caption="Shares Module")
+
     # report combine icon
     pie_chart_icon = load_icon("assests/stock_pies.png",(48, 48) )
     bar_icon = load_icon("assests/stock_icon.png", (60,60))
-    stock_report_icon = icon((120,120), pos=(300, 250))
+    stock_report_icon = icon((120,100), pos=(300, 250))
     stock_report_icon.add_image(pie_chart_icon, (0, 0))
     stock_report_icon.add_image(bar_icon, (50, 0))
     stock_report_icon.tint(WHITE)
+
+    stock_report_card = button_card((300, 200), stock_report_icon, caption="Overall Summary")
 
     
     
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
+
+    #initial card positions
+    card_width, card_height = bank_card.surface.get_size()
+    card_pos_x = int(width * 0.1)
+    card_pos_y = height - (height + card_height) // 3
+    bank_card.update_position(card_pos_x, card_pos_y)
+    gap = int(card_width * 0.1)
+    share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
+    stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
+    
+    
 
     
 
@@ -139,11 +226,26 @@ def main():
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
+
+                #update card positions
+                card_pos_x = int(width * 0.1)
+                card_pos_y = height - (height + card_height) // 3
+                bank_card.update_position(card_pos_x, card_pos_y)
+                share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
+                stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
         
         screen.blit(background, (0, 0))
-        bank_icons.draw(screen)
-        stock_bar_icon.draw(screen)
-        stock_report_icon.draw(screen)
+
+        #hover check for buttons
+        mouse_pos = pygame.mouse.get_pos()
+        bank_card.hovered_check(mouse_pos)
+        share_card.hovered_check(mouse_pos)
+        stock_report_card.hovered_check(mouse_pos)
+
+        #draw buttons
+        bank_card.draw(screen)
+        share_card.draw(screen)
+        stock_report_card.draw(screen)
         
         
         pygame.display.update()
