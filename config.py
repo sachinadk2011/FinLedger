@@ -1,6 +1,9 @@
 WIDTH = None
 HEIGHT = None
 FPS = 60
+BASE_W = 1050
+BASE_H = 768
+
 
 MIN_WIDTH = None
 MIN_HEIGHT = None

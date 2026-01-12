@@ -11,12 +11,12 @@ config.HEIGHT = int(info.current_h * 0.7)
 config.MIN_WIDTH = int( info.current_w* 0.5)
 config.MIN_HEIGHT = int(info.current_h * 0.55)
 
-from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH 
+from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W
 print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
 
 pygame.display.set_caption("Finance Investement Tracker")
 clock = pygame.time.Clock()
-font = pygame.font.SysFont("Arial", 24)
+
 
 START_COLOR = (25, 45, 100)   # Deep Blue (Corner 1)
 MID_COLOR = (50, 150, 180)    # Vibrant Teal (Middle)
@@ -68,6 +68,48 @@ def load_icon(path, size):
     icon = pygame.image.load(path).convert_alpha() 
     return pygame.transform.smoothscale(icon, size)
 
+def get_ui_scale(screen_w, screen_h):
+    scale_x = screen_w / BASE_W
+    scale_y = screen_h / BASE_H
+
+    # Use the smaller one to prevent overflow
+    scale = min(scale_x, scale_y)
+
+    # Clamp scale (CRITICAL)
+    scale = max(0.85, min(scale, 1.15))
+
+    return scale
+
+
+class FontManager:
+    def __init__(self):
+        self.scale = 1.0
+        self.fonts = {}
+        self.size = 24 # default size
+
+    def update_scale(self, scale):
+        if scale != self.scale:
+            self.scale = scale
+            self.fonts.clear()  # force rebuild
+
+    def get(self, size= 24, bold=False):
+        
+        key = (size, bold)
+        if key not in self.fonts:
+            self.fonts[key] = pygame.font.SysFont(
+                "Arial",
+                int(size * self.scale),
+                bold=bold
+            )
+        return self.fonts[key]
+
+    def render(self, text, size=24, color=WHITE, bold=False):
+        font = self.get(size, bold)
+        return font.render(text,  color)
+
+# global variable for font
+font = FontManager().get(24)
+
 # Icon class to manage individual icons
 class icon:
     def __init__(self,  size, pos=(0,0)):
@@ -109,7 +151,7 @@ class button_card:
     def update_position(self, x, y):
         self.rect.topleft = (x, y)
         x, y = self.surface.get_size() 
-        print(x, y)
+        #print(x, y)
         #center icon in button
         icon_x = x // 2 + self.caption_length // 2 - self.icon.get_width() // 3 
         icon_y = y // 2 - self.icon.get_height() // 2 
@@ -151,7 +193,10 @@ class button_card:
             caption_rect = caption_surf.get_rect(center=(self.surface.get_width() // 2, self.surface.get_height() - 50))
             self.surface.blit(caption_surf, caption_rect)
         screen.blit(self.surface, self.rect.topleft)
-    
+
+
+
+
 def main():
     screen  = pygame.display.set_mode(
                 (WIDTH, HEIGHT),
@@ -196,13 +241,15 @@ def main():
 
     #initial card positions
     card_width, card_height = bank_card.surface.get_size()
-    card_pos_x = int(width * 0.1)
+    card_pos_x = int(width * 0.05)
+    
     card_pos_y = height - (height + card_height) // 3
     bank_card.update_position(card_pos_x, card_pos_y)
     gap = int(card_width * 0.1)
+    
     share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
     stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
-    
+    print(f"Gap: {gap}")
     
 
     
@@ -226,16 +273,17 @@ def main():
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
-
+                print(f"Resized to: {width}x{height}")
                 #update card positions
-                card_pos_x = int(width * 0.1)
+                card_pos_x = int(width * 0.02)
+                
                 card_pos_y = height - (height + card_height) // 3
                 bank_card.update_position(card_pos_x, card_pos_y)
                 share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
                 stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
         
         screen.blit(background, (0, 0))
-
+        
         #hover check for buttons
         mouse_pos = pygame.mouse.get_pos()
         bank_card.hovered_check(mouse_pos)
