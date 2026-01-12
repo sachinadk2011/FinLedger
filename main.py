@@ -76,7 +76,7 @@ def get_ui_scale(screen_w, screen_h):
     scale = min(scale_x, scale_y)
 
     # Clamp scale (CRITICAL)
-    scale = max(0.85, min(scale, 1.15))
+    scale = max(0.85, min(scale, 1.35))
 
     return scale
 
@@ -105,21 +105,39 @@ class FontManager:
 
     def render(self, text, size=24, color=WHITE, bold=False):
         font = self.get(size, bold)
-        return font.render(text,  color)
+        return font.render(text, True, color)
 
 # global variable for font
-font = FontManager().get(24)
+font = FontManager()
 
 # Icon class to manage individual icons
 class icon:
     def __init__(self,  size, pos=(0,0)):
+        self.base_size = size
         self.surface = pygame.Surface(size, pygame.SRCALPHA)
         
         self.rel_x, self.rel_y = pos
+        self.icons = []
     
     def add_image(self, icon, pos):
+        self.icons.append((icon, pos))
         self.surface.blit(icon, pos)
-    
+
+    def set_size(self, scale):
+        new_size = (
+            int(self.base_size[0] * scale),
+            int(self.base_size[1] * scale)
+        )
+        self.surface = pygame.Surface(new_size, pygame.SRCALPHA)
+        for icon, pos in self.icons:
+            #scale icon position
+            new_pos = (int(pos[0] * scale), int(pos[1] * scale))
+            #scale icon size
+            icon_size = icon.get_size()
+            new_icon_size = (int(icon_size[0] * scale), int(icon_size[1] * scale))
+            scaled_icon = pygame.transform.smoothscale(icon, new_icon_size)
+            self.surface.blit(scaled_icon, new_pos)
+
     def get_width(self):
         return self.surface.get_width()
     
@@ -147,6 +165,9 @@ class button_card:
         self.caption_length = len(caption)
         self.hovered = False
         self.Gray = (60, 60, 60)
+
+    def set_size(self, size):
+        self.surface = pygame.Surface(size, pygame.SRCALPHA)
 
     def update_position(self, x, y):
         self.rect.topleft = (x, y)
@@ -189,7 +210,7 @@ class button_card:
         #draw icon and caption over button
         self.icon.draw(self.surface)
         if self.caption:
-            caption_surf = font.render(self.caption, True, WHITE)
+            caption_surf = font.render(self.caption, bold=True)
             caption_rect = caption_surf.get_rect(center=(self.surface.get_width() // 2, self.surface.get_height() - 50))
             self.surface.blit(caption_surf, caption_rect)
         screen.blit(self.surface, self.rect.topleft)
@@ -212,7 +233,7 @@ def main():
     bank_icons.add_image(pig_icon, (0, 20))
     bank_icons.tint(WHITE)
     
-    bank_card = button_card((300, 200), bank_icons, caption="Bank Accounts")
+    
     
 
     #share icon 
@@ -221,7 +242,7 @@ def main():
     stock_bar_icon.add_image(share_icon, (0, 0))
     stock_bar_icon.tint(WHITE)
 
-    share_card = button_card((300, 200), stock_bar_icon, caption="Shares Module")
+    
 
     # report combine icon
     pie_chart_icon = load_icon("assests/stock_pies.png",(48, 48) )
@@ -231,13 +252,19 @@ def main():
     stock_report_icon.add_image(bar_icon, (50, 0))
     stock_report_icon.tint(WHITE)
 
-    stock_report_card = button_card((300, 200), stock_report_icon, caption="Overall Summary")
 
     
     
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
+    scale = get_ui_scale(width, height)
+    font.update_scale(scale)
+
+    size = (int(300 * scale), int(200 * scale))
+    bank_card = button_card(size, bank_icons, caption="Bank Accounts")
+    share_card = button_card(size, stock_bar_icon, caption="Shares Module")
+    stock_report_card = button_card(size, stock_report_icon, caption="Overall Summary")
 
     #initial card positions
     card_width, card_height = bank_card.surface.get_size()
@@ -273,8 +300,20 @@ def main():
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
+                scale = get_ui_scale(width, height)
+                font.update_scale(scale)
+                
+                bank_icons.set_size(scale)
+                stock_report_icon.set_size(scale)
+                stock_bar_icon.set_size(scale)
+
+                size = (int(300 * scale), int(200 * scale))
+                bank_card.set_size(size)
+                share_card.set_size(size)
+                stock_report_card.set_size(size)
                 print(f"Resized to: {width}x{height}")
                 #update card positions
+                card_width, card_height = bank_card.surface.get_size()
                 card_pos_x = int(width * 0.02)
                 
                 card_pos_y = height - (height + card_height) // 3
