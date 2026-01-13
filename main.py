@@ -11,7 +11,7 @@ config.HEIGHT = int(info.current_h * 0.7)
 config.MIN_WIDTH = int( info.current_w* 0.5)
 config.MIN_HEIGHT = int(info.current_h * 0.55)
 
-from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W
+from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
 print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
 
 pygame.display.set_caption("Finance Investement Tracker")
@@ -73,12 +73,14 @@ def get_ui_scale(screen_w, screen_h):
     scale_y = screen_h / BASE_H
 
     # Use the smaller one to prevent overflow
-    scale = min(scale_x, scale_y)
+    layout_scale = min(scale_x, scale_y)
+    layout_scale = max(0.85, min(layout_scale, 1.35))
+    font_scale = layout_scale * 0.92
+    icon_scale = layout_scale * 0.9
 
-    # Clamp scale (CRITICAL)
-    scale = max(0.85, min(scale, 1.35))
+    
 
-    return scale
+    return (layout_scale, font_scale, icon_scale)
 
 
 class FontManager:
@@ -258,25 +260,40 @@ def main():
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
-    scale = get_ui_scale(width, height)
-    font.update_scale(scale)
+    layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
+    font.update_scale(font_scale)
 
-    size = (int(300 * scale), int(200 * scale))
+    margin = int(BASE_MARGIN * layout_scale)
+    min_gap = int(BASE_GAP * layout_scale)
+
+    available_width = width - 2 * margin - 2 * min_gap
+    max_card_width = available_width // 3
+
+
+
+    size = (
+        min(
+            int(BASE_CARD_W * layout_scale),
+            max_card_width
+            ),
+        int(BASE_CARD_H * layout_scale)
+    )
     bank_card = button_card(size, bank_icons, caption="Bank Accounts")
     share_card = button_card(size, stock_bar_icon, caption="Shares Module")
     stock_report_card = button_card(size, stock_report_icon, caption="Overall Summary")
 
     #initial card positions
     card_width, card_height = bank_card.surface.get_size()
-    card_pos_x = int(width * 0.05)
+    gap = (width - 2 * margin - 3 * card_width) // 2
+    gap = max(gap, min_gap)
+    card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
     
     card_pos_y = height - (height + card_height) // 3
     bank_card.update_position(card_pos_x, card_pos_y)
-    gap = int(card_width * 0.1)
     
     share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
     stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
-    print(f"Gap: {gap}")
+    print(f"Gap: {gap}, {card_pos_x}")
     
 
     
@@ -300,22 +317,44 @@ def main():
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
-                scale = get_ui_scale(width, height)
-                font.update_scale(scale)
+                layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
+                font.update_scale(font_scale)
                 
-                bank_icons.set_size(scale)
-                stock_report_icon.set_size(scale)
-                stock_bar_icon.set_size(scale)
+                bank_icons.set_size(icon_scale)
+                stock_report_icon.set_size(icon_scale)
+                stock_bar_icon.set_size(icon_scale)
 
-                size = (int(300 * scale), int(200 * scale))
+                margin = int(BASE_MARGIN * layout_scale)
+                min_gap = int(BASE_GAP * layout_scale)
+
+                available_width = width - 2 * margin - 2 * min_gap
+                max_card_width = available_width // 3
+
+
+
+                size = (
+                        min(
+                            int(BASE_CARD_W * layout_scale),
+                            max_card_width
+                            ),
+                        int(BASE_CARD_H * layout_scale)
+                        )
+                print("New button size: ", size)
                 bank_card.set_size(size)
                 share_card.set_size(size)
                 stock_report_card.set_size(size)
                 print(f"Resized to: {width}x{height}")
                 #update card positions
                 card_width, card_height = bank_card.surface.get_size()
-                card_pos_x = int(width * 0.02)
                 
+                gap = (width - 2 * margin - 3 * card_width) // 2
+                print("Calculated gap: ", gap)
+                gap = max(min(gap, 30), min_gap)
+                print("Used gap: ", gap, min_gap)
+                card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
+                print("Card pos x: ", card_pos_x)
+                
+
                 card_pos_y = height - (height + card_height) // 3
                 bank_card.update_position(card_pos_x, card_pos_y)
                 share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
