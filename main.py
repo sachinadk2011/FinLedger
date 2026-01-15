@@ -75,8 +75,8 @@ def get_ui_scale(screen_w, screen_h):
     # Use the smaller one to prevent overflow
     layout_scale = min(scale_x, scale_y)
     layout_scale = max(0.85, min(layout_scale, 1.35))
-    font_scale = layout_scale * 0.92
-    icon_scale = layout_scale * 0.9
+    font_scale = layout_scale * 0.92 if layout_scale != 1 else layout_scale 
+    icon_scale = layout_scale * 0.9 if layout_scale != 1 else layout_scale
 
     
 
@@ -88,6 +88,7 @@ class FontManager:
         self.scale = 1.0
         self.fonts = {}
         self.size = 24 # default size
+        self.font_name = "Arial"
 
     def update_scale(self, scale):
         if scale != self.scale:
@@ -99,11 +100,24 @@ class FontManager:
         key = (size, bold)
         if key not in self.fonts:
             self.fonts[key] = pygame.font.SysFont(
-                "Arial",
+                self.font_name,
                 int(size * self.scale),
                 bold=bold
             )
         return self.fonts[key]
+    
+    def set_font_name(self, font_name):
+        if font_name != self.font_name:
+            self.font_name = font_name
+            self.fonts.clear()  # force rebuild
+    
+    def get_size(self, text, size=24, bold=False):
+        font = self.get(size, bold)
+        return font.size(text)
+    
+    def get_height(self, size=24, bold=False):
+        font = self.get(size, bold)
+        return font.get_height()
 
     def render(self, text, size=24, color=WHITE, bold=False):
         font = self.get(size, bold)
@@ -111,6 +125,25 @@ class FontManager:
 
 # global variable for font
 font = FontManager()
+
+def text_wrapper(text, max_width, size=24, bold=False):
+    words = text.split(' ')
+    lines = []
+    current_line = ""
+
+    for word in words:
+        test_line = current_line + word + " "
+        line_width, _ = font.get_size(test_line, size, bold)
+        if line_width <= max_width:
+            current_line = test_line
+        else:
+            lines.append(current_line.strip())
+            current_line = word + " "
+
+    if current_line:
+        lines.append(current_line.strip())
+
+    return lines
 
 # Icon class to manage individual icons
 class icon:
@@ -217,8 +250,19 @@ class button_card:
             self.surface.blit(caption_surf, caption_rect)
         screen.blit(self.surface, self.rect.topleft)
 
+def text_centered(screen, text, size=24, color=WHITE, center_pos=(0,0),max_width=0, bold=False, font_name="Arial"):
+    font.set_font_name(font_name)
+    lines = text_wrapper(text, max_width, size, bold)
+    line_height = font.get_height(size, bold)
+    total_height = line_height * (len(lines) - 1)
 
-
+    start_y = center_pos[1] - total_height // len(lines)
+    for i, line in enumerate(lines):
+        line_surf = font.render(line, size=size, color=color, bold=bold)
+        
+        line_rect = line_surf.get_rect(center=(center_pos[0], start_y + i * line_height))
+        screen.blit(line_surf, line_rect)
+    return size
 
 def main():
     screen  = pygame.display.set_mode(
@@ -234,17 +278,12 @@ def main():
     bank_icons.add_image(coin_icon, (18, 5))
     bank_icons.add_image(pig_icon, (0, 20))
     bank_icons.tint(WHITE)
-    
-    
-    
 
     #share icon 
     share_icon = load_icon("assests/stock_icon.png", (80, 80))
     stock_bar_icon = icon((120, 100) ,pos=(220, 250))
     stock_bar_icon.add_image(share_icon, (0, 0))
     stock_bar_icon.tint(WHITE)
-
-    
 
     # report combine icon
     pie_chart_icon = load_icon("assests/stock_pies.png",(48, 48) )
@@ -253,10 +292,7 @@ def main():
     stock_report_icon.add_image(pie_chart_icon, (0, 0))
     stock_report_icon.add_image(bar_icon, (50, 0))
     stock_report_icon.tint(WHITE)
-
-
-    
-    
+  
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
@@ -288,16 +324,16 @@ def main():
     gap = max(gap, min_gap)
     card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
     
-    card_pos_y = height - (height + card_height) // 3
+    card_pos_y = height * 0.5
     bank_card.update_position(card_pos_x, card_pos_y)
     
     share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
     stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
     print(f"Gap: {gap}, {card_pos_x}")
-    
 
-    
-
+    heading = "Offline Personal Finance & Investment Tracker"
+    subheading = "Your Financial Compass"
+ 
     while True:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -355,15 +391,17 @@ def main():
                 print("Card pos x: ", card_pos_x)
                 
 
-                card_pos_y = height - (height + card_height) // 3
+                card_pos_y = height * 0.5
                 bank_card.update_position(card_pos_x, card_pos_y)
                 share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
                 stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
         
         screen.blit(background, (0, 0))
+        heading_size = text_centered(screen, heading, size=int(min(60,max(50,56 * font_scale))), color=WHITE, center_pos=(width // 2, height // 6), max_width=width*0.6, bold=True, font_name= "Arial")
+        text_centered(screen, subheading, size=int(min(32,max(24,28 * font_scale))), color=(210, 210, 210), center_pos=(width // 2, height // 6 + 1.25 * font.get_height(heading_size)), max_width=width*0.6, bold=False, font_name = "Segoe UI")
         
         #hover check for buttons
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = pygame.mouse.get_pos() 
         bank_card.hovered_check(mouse_pos)
         share_card.hovered_check(mouse_pos)
         stock_report_card.hovered_check(mouse_pos)
