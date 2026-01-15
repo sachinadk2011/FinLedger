@@ -23,7 +23,7 @@ pygame.display.set_caption("Finance Investement Tracker")
 clock = pygame.time.Clock()
 
 
-def update_layout(screen, width, height, icons, cards):
+def update_layout( width, height, icons, cards):
     layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
     font.update_scale(font_scale)  
 
@@ -104,15 +104,16 @@ def main():
     bank_card = button_card((10,10), bank_icons, caption="Bank Accounts")
     share_card = button_card((10,10), stock_bar_icon, caption="Shares Module")
     stock_report_card = button_card((10,10), stock_report_icon, caption="Overall Summary")
+
     icons = [bank_icons, stock_bar_icon, stock_report_icon]
     cards = [bank_card, share_card, stock_report_card]
 
-    font_scale = update_layout(screen, width, height, icons, cards)
+    font_scale = update_layout(width, height, icons, cards)
     heading = "Offline Personal Finance & Investment Tracker"
     subheading = "Your Financial Compass"
  
     while True:
-        clock.tick(FPS)
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -122,15 +123,14 @@ def main():
                     pygame.quit()
                     sys.exit()
             
-            if event.type == pygame.VIDEORESIZE:
-                  
+            if event.type == pygame.VIDEORESIZE:               
                 width, height = max(event.w, MIN_WIDTH), max(event.h, MIN_HEIGHT)
                 screen = pygame.display.set_mode(
                  (width, height),
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
-                font_scale = update_layout(screen, width, height, icons, cards)
+                font_scale = update_layout(width, height, icons, cards)
                 
         
         screen.blit(background, (0, 0))
@@ -139,14 +139,10 @@ def main():
         
         #hover check for buttons
         mouse_pos = pygame.mouse.get_pos() 
-        bank_card.hovered_check(mouse_pos)
-        share_card.hovered_check(mouse_pos)
-        stock_report_card.hovered_check(mouse_pos)
-
-        #draw buttons
-        bank_card.draw(screen)
-        share_card.draw(screen)
-        stock_report_card.draw(screen)
+        
+        for card in cards:
+            card.hovered_check(mouse_pos)
+            card.draw(screen)
         
         
         pygame.display.update()

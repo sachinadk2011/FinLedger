@@ -1,5 +1,5 @@
 import pygame
-from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
+from config import  ORANGE
 from .fontManager import font
 
 
@@ -19,7 +19,8 @@ class icon:
     
     def add_image(self, icon, pos):
         self.icons.append((icon, pos))
-        self.surface.blit(icon, pos)
+        
+        
 
     def set_size(self, scale):
         new_size = (
@@ -56,6 +57,7 @@ class icon:
 # Button card class for interactive buttons
 class button_card:
     def __init__(self, size, icon, pos=(0,0), caption=""):
+        self.size = size
         self.surface = pygame.Surface(size, pygame.SRCALPHA)
         self.rect = self.surface.get_rect(topleft=pos)
         self.icon = icon
@@ -65,11 +67,14 @@ class button_card:
         self.Gray = (60, 60, 60)
 
     def set_size(self, size):
+        self.size = size
         self.surface = pygame.Surface(size, pygame.SRCALPHA)
+        self.rect = self.surface.get_rect(topleft=self.rect.topleft)
+        #self.update_position(self.rect.x, self.rect.y)  # recenter icon
 
     def update_position(self, x, y):
         self.rect.topleft = (x, y)
-        x, y = self.surface.get_size() 
+        x, y = self.size
         #print(x, y)
         #center icon in button
         icon_x = x // 2 + self.caption_length // 2 - self.icon.get_width() // 3 
@@ -77,7 +82,9 @@ class button_card:
         self.icon.set_pos(icon_x, icon_y)
 
     def hovered_check(self, mouse_pos):
+        
         self.hovered = self.rect.collidepoint(mouse_pos)
+       
             
 
     def draw(self, screen, color="", alpha=15):
