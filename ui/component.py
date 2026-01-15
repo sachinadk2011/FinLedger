@@ -77,16 +77,12 @@ class button_card:
         self.icon.set_pos(icon_x, icon_y)
 
     def hovered_check(self, mouse_pos):
-        if self.rect.collidepoint(mouse_pos):
-            self.hovered = True
-            
-        else:
-            self.hovered = False
+        self.hovered = self.rect.collidepoint(mouse_pos)
             
 
     def draw(self, screen, color="", alpha=15):
-        self.color = color if color else self.Gray
-        self.color = ORANGE if self.hovered else self.Gray
+        self.surface.fill((0,0,0,0))  # fully transparent
+        self.color = ORANGE if self.hovered else (color if color else self.Gray)
         
 
         #draw card background
