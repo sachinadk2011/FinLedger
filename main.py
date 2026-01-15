@@ -15,16 +15,58 @@ from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDT
 print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
 
 # Import custom modules
-from ui.fontManager import font
-from ui.component import icon, button_card
-from utils.text_utils import text_centered
-from utils.load_icon import load_icon
-from utils.display_utils import get_instant_bg, get_ui_scale
+from ui import font, icon, button_card
+from utils import text_centered, load_icon, get_instant_bg, get_ui_scale
+
 
 pygame.display.set_caption("Finance Investement Tracker")
 clock = pygame.time.Clock()
 
 
+def update_layout(screen, width, height, icons, cards):
+    layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
+    font.update_scale(font_scale)  
+
+    #update icon sizes
+    for icon in icons:
+        icon.set_size(icon_scale)
+    
+    #update button sizes
+    margin = int(BASE_MARGIN * layout_scale)
+    min_gap = int(BASE_GAP * layout_scale)
+    available_width = width - 2 * margin - 2 * min_gap
+    max_card_width = available_width // 3
+
+    size = (
+            min(
+                int(BASE_CARD_W * layout_scale),
+                max_card_width
+                ),
+            int(BASE_CARD_H * layout_scale)
+            )
+    print("New button size: ", size)
+
+    #update card sizes
+    for card in cards:
+        card.set_size(size)
+
+    print(f"Resized to: {width}x{height}")
+
+    #update card positions
+    card_width = size[0]               
+    gap = (width - 2 * margin - 3 * card_width) // 2
+    print("Calculated gap: ", gap)
+    gap = max(min(gap, 30), min_gap)
+    print("Used gap: ", gap, min_gap)
+
+    card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
+    print("Card pos x: ", card_pos_x)       
+    card_pos_y = height * 0.5
+    #update each card position
+    for i, card in enumerate(cards):
+            card.update_position(card_pos_x + i * (card_width + gap), card_pos_y)
+
+    return font_scale
 
 def main():
     screen  = pygame.display.set_mode(
@@ -58,41 +100,14 @@ def main():
     # Draw once (important!)
     width, height = screen.get_size()
     background = get_instant_bg(width, height)
-    layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
-    font.update_scale(font_scale)
 
-    margin = int(BASE_MARGIN * layout_scale)
-    min_gap = int(BASE_GAP * layout_scale)
+    bank_card = button_card((10,10), bank_icons, caption="Bank Accounts")
+    share_card = button_card((10,10), stock_bar_icon, caption="Shares Module")
+    stock_report_card = button_card((10,10), stock_report_icon, caption="Overall Summary")
+    icons = [bank_icons, stock_bar_icon, stock_report_icon]
+    cards = [bank_card, share_card, stock_report_card]
 
-    available_width = width - 2 * margin - 2 * min_gap
-    max_card_width = available_width // 3
-
-
-
-    size = (
-        min(
-            int(BASE_CARD_W * layout_scale),
-            max_card_width
-            ),
-        int(BASE_CARD_H * layout_scale)
-    )
-    bank_card = button_card(size, bank_icons, caption="Bank Accounts")
-    share_card = button_card(size, stock_bar_icon, caption="Shares Module")
-    stock_report_card = button_card(size, stock_report_icon, caption="Overall Summary")
-
-    #initial card positions
-    card_width, card_height = bank_card.surface.get_size()
-    gap = (width - 2 * margin - 3 * card_width) // 2
-    gap = max(gap, min_gap)
-    card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
-    
-    card_pos_y = height * 0.5
-    bank_card.update_position(card_pos_x, card_pos_y)
-    
-    share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
-    stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
-    print(f"Gap: {gap}, {card_pos_x}")
-
+    font_scale = update_layout(screen, width, height, icons, cards)
     heading = "Offline Personal Finance & Investment Tracker"
     subheading = "Your Financial Compass"
  
@@ -115,48 +130,8 @@ def main():
                     pygame.RESIZABLE
                     )
                 background = get_instant_bg(width, height)
-                layout_scale, font_scale, icon_scale = get_ui_scale(width, height)
-                font.update_scale(font_scale)
+                font_scale = update_layout(screen, width, height, icons, cards)
                 
-                bank_icons.set_size(icon_scale)
-                stock_report_icon.set_size(icon_scale)
-                stock_bar_icon.set_size(icon_scale)
-
-                margin = int(BASE_MARGIN * layout_scale)
-                min_gap = int(BASE_GAP * layout_scale)
-
-                available_width = width - 2 * margin - 2 * min_gap
-                max_card_width = available_width // 3
-
-
-
-                size = (
-                        min(
-                            int(BASE_CARD_W * layout_scale),
-                            max_card_width
-                            ),
-                        int(BASE_CARD_H * layout_scale)
-                        )
-                print("New button size: ", size)
-                bank_card.set_size(size)
-                share_card.set_size(size)
-                stock_report_card.set_size(size)
-                print(f"Resized to: {width}x{height}")
-                #update card positions
-                card_width, card_height = bank_card.surface.get_size()
-                
-                gap = (width - 2 * margin - 3 * card_width) // 2
-                print("Calculated gap: ", gap)
-                gap = max(min(gap, 30), min_gap)
-                print("Used gap: ", gap, min_gap)
-                card_pos_x = (width - (3 * card_width + 2 * gap)) // 2
-                print("Card pos x: ", card_pos_x)
-                
-
-                card_pos_y = height * 0.5
-                bank_card.update_position(card_pos_x, card_pos_y)
-                share_card.update_position(card_pos_x + card_width + gap, card_pos_y)
-                stock_report_card.update_position(card_pos_x + 2*(card_width + gap), card_pos_y)
         
         screen.blit(background, (0, 0))
         heading_size = text_centered(screen, heading, size=int(min(60,max(50,56 * font_scale))), color=WHITE, center_pos=(width // 2, height // 6), max_width=width*0.6, bold=True, font_name= "Arial")
