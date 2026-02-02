@@ -1,6 +1,6 @@
 import pygame
 import sys
-from pygame_created_remain.config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
+from legacy_pygame.config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
 from ui import font, icon, button_card
 from utils import text_centered, load_icon, get_instant_bg, get_ui_scale
 

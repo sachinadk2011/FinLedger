@@ -1,5 +1,5 @@
 import pygame
-from pygame_created_remain.config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
+from legacy_pygame.config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
 
 START_COLOR = (25, 45, 100)   # Deep Blue (Corner 1)
 MID_COLOR = (50, 150, 180)    # Vibrant Teal (Middle)
