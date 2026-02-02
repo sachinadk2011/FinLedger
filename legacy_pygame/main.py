@@ -1,6 +1,6 @@
 import pygame
 import sys
-import config
+import pygame_created_remain.config as config
 
 pygame.init()
 info = pygame.display.Info()
@@ -11,12 +11,13 @@ config.HEIGHT = int(info.current_h * 0.7)
 config.MIN_WIDTH = int( info.current_w* 0.5)
 config.MIN_HEIGHT = int(info.current_h * 0.55)
 
-from config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
+from pygame_created_remain.config import WHITE, BLUE, ORANGE, MIN_WIDTH, MIN_HEIGHT, FPS, HEIGHT, WIDTH, BASE_H, BASE_W, BASE_CARD_H, BASE_CARD_W, BASE_GAP, BASE_MARGIN
 print(MIN_WIDTH, MIN_HEIGHT,  HEIGHT, WIDTH)
 
 # Import custom modules
 from ui import font, icon, button_card
 from utils import text_centered, load_icon, get_instant_bg, get_ui_scale
+from pygame_created_remain.bank_module import bank_module_main
 
 
 pygame.display.set_caption("Finance Investement Tracker")
@@ -122,6 +123,19 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     sys.exit()
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                if event.button == 1:  # Left mouse button
+                    for card in cards:
+                        if card.hovered_check(mouse_pos):
+                            print(f"Clicked on card: {card.caption}")
+                            if card.caption == "Bank Accounts":
+                                bank_module_main()
+                            #elif card.caption == "Shares Module":
+                                #call shares module main function
+                            #elif card.caption == "Overall Summary":
+                                #call overall summary module main function
+            
             
             if event.type == pygame.VIDEORESIZE:               
                 width, height = max(event.w, MIN_WIDTH), max(event.h, MIN_HEIGHT)
@@ -142,6 +156,7 @@ def main():
         
         for card in cards:
             card.hovered_check(mouse_pos)
+            
             card.draw(screen)
         
         

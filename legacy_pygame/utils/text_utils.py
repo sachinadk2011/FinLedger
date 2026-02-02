@@ -1,5 +1,5 @@
 from ui.fontManager import font
-from config import WHITE
+from pygame_created_remain.config import WHITE
 
 
 def text_wrapper(text, max_width, size=24, bold=False):

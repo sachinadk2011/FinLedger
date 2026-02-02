@@ -1,5 +1,5 @@
 import pygame
-from config import WHITE
+from pygame_created_remain.config import WHITE
 
 class FontManager:
     def __init__(self):

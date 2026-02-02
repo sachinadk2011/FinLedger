@@ -1,13 +1,39 @@
+from turtle import mode
 import pygame
-from config import  ORANGE
+from pygame_created_remain.config import  ORANGE
 from .fontManager import font
 
 
 # Function to tint an icon with a given color
-def tint_icon(icon, color):
-    tinted = icon.copy()
-    tinted.fill((*color, 255), special_flags=pygame.BLEND_RGBA_MULT)
-    return tinted   
+def tint_icon(icon_surf, color, mode="fill", thickness=2):
+    """
+    mode:
+      - "fill"    -> tint the full icon (filled style)
+      - "outline" -> only draw border/outline, inside transparent
+    """
+    icon_surf = icon_surf.convert_alpha()
+
+    if mode == "fill":
+        tinted = icon_surf.copy()
+        tinted.fill((*color, 255), special_flags=pygame.BLEND_RGBA_MULT)
+        return tinted
+
+    elif mode == "outline":
+        mask = pygame.mask.from_surface(icon_surf)
+
+        # transparent surface
+        result = pygame.Surface(icon_surf.get_size(), pygame.SRCALPHA)
+
+        outline_points = mask.outline()
+
+        # draw outline
+        for x, y in outline_points:
+            pygame.draw.circle(result, (*color, 255), (x, y), thickness)
+
+        return result
+
+    else:
+        raise ValueError("mode must be 'fill' or 'outline'")  
 
 class icon:
     def __init__(self,  size, pos=(0,0)):
@@ -45,14 +71,15 @@ class icon:
     
     def draw(self, target_screen):
         # Draw the icon surface onto the target screen at its relative position
+        print("Drawing icon at: ", self.rel_x, self.rel_y)
         target_screen.blit(self.surface, (self.rel_x, self.rel_y))
 
     def set_pos(self, x, y):
         self.rel_x = x
         self.rel_y = y
 
-    def tint(self, color):
-        self.surface = tint_icon(self.surface, color)
+    def tint(self, color, mode="fill", thickness=2):
+        self.surface = tint_icon(self.surface, color, mode, thickness)
 
 # Button card class for interactive buttons
 class button_card:
@@ -84,7 +111,7 @@ class button_card:
     def hovered_check(self, mouse_pos):
         
         self.hovered = self.rect.collidepoint(mouse_pos)
-       
+        return self.hovered
             
 
     def draw(self, screen, color="", alpha=15):
