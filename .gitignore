@@ -2,3 +2,4 @@ venv/
 setup_venv.ps1
 __pycache__/
 *.pyc
+run_backend.bat
